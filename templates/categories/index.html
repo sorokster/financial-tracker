@@ -6,6 +6,19 @@
 </head>
 <body>
     <h1>Categories</h1>
+
     <p>List of all categories will be shown here.</p>
+    {% for category in categories %}
+        <p><a href="/category/{{ category.id }}">{{ category.name }}</a></p>
+    {% endfor %}
+
+    <h2>Add category:</h2>
+    <form method="POST" action="/category">
+        <label for="name">
+            Name:
+            <input type="text" id="name" name="name" value="">
+        </label>
+        <button type="submit">Add Category</button>
+    </form>
 </body>
 </html>

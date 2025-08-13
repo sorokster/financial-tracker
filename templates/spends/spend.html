@@ -5,6 +5,41 @@
     <title>Spend</title>
 </head>
 <body>
-    <h1>Spend ID: {{ spend_id }}</h1>
+    <h1>Spend ID: {{ transaction.id }}</h1>
+    <a href="/spend">Back</a>
+
+    <h2>Update spend:</h2>
+    <form method="POST" action="/spend/{{ transaction.id }}">
+        <input type="hidden" name="_method" value="PATCH">
+        <p>
+            <label for="transaction_amount">
+                Amount:
+                <input type="text" id="transaction_amount" name="amount" value="{{ transaction.amount }}">
+            </label>
+        </p>
+        <p>
+            <label for="transaction_category">
+                Category:
+                <select name="category" id="transaction_category">
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {{ 'selected' if category.id == transaction.category.id else '' }}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </p>
+        <p>
+            <label for="transaction_description">
+                Description:
+                <input type="text" id="transaction_description" name="description" value="{{ transaction.description }}">
+            </label>
+        </p>
+        <button type="submit">Update spend</button>
+    </form>
+
+    <p>Delete spend:</p>
+    <form method="POST" action="/spend/{{ transaction.id }}">
+        <input type="hidden" name="_method" value="DELETE">
+        <button type="submit">Delete spend</button>
+    </form>
 </body>
 </html>

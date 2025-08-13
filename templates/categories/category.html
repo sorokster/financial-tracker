@@ -5,6 +5,24 @@
     <title>Category</title>
 </head>
 <body>
-    <h1>Category ID: {{ category_id }}</h1>
+    <h1>Category info:</h1>
+    <a href="/category">Back</a>
+
+    <h2>Update category:</h2>
+    <form method="POST" action="/category/{{ category.id }}">
+        <input type="hidden" name="_method" value="PATCH">
+        <label>
+            Category:
+            <input type="text" name="name" value="{{ category.name }}">
+        </label>
+        <button type="submit">Update Category</button>
+    </form>
+
+    <p>Delete category:</p>
+    <form method="POST" action="/category/{{ category.id }}">
+        <input type="hidden" name="_method" value="DELETE">
+        <input type="hidden" name="name" value="{{ category.name }}">
+        <button type="submit">Delete Category</button>
+    </form>
 </body>
 </html>

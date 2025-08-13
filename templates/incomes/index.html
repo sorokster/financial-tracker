@@ -6,6 +6,37 @@
 </head>
 <body>
     <h1>Incomes</h1>
+
     <p>List of incomes will go here.</p>
+    {% for transaction in transactions %}
+        <p><a href="/income/{{ transaction.id }}">{{ transaction.amount }}</a></p>
+    {% endfor %}
+
+    <h2>Add income:</h2>
+    <form method="POST" action="/income">
+        <p>
+            <label for="transaction_amount">
+                Amount:
+                <input type="text" id="transaction_amount" name="amount" value="">
+            </label>
+        </p>
+        <p>
+            <label for="transaction_category">
+                Category:
+                <select name="category" id="transaction_category">
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </p>
+        <p>
+            <label for="transaction_description">
+                Description:
+                <input type="text" id="transaction_description" name="description" value="">
+            </label>
+        </p>
+        <button type="submit">Update income</button>
+    </form>
 </body>
 </html>
