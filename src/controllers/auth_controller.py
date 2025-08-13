@@ -1,14 +1,12 @@
 from flask import Blueprint, request, render_template, session, redirect, url_for
 from src.decorators.anonymous_required import anonymous_required
-from src.factories.database_connection_factory import DatabaseConnectionFactory
 from src.repositories.user_repository import UserRepository
 from src.services.auth_service import AuthService
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='')
 
 def get_auth_service() -> AuthService:
-    client = DatabaseConnectionFactory.create_client('sqlite', db_name='financial_tracker.db')
-    return AuthService(UserRepository(client))
+    return AuthService(UserRepository())
 
 @auth_blueprint.route('/register', methods=['GET', 'POST'])
 @anonymous_required

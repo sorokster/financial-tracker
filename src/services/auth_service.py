@@ -1,5 +1,6 @@
 import hashlib
-from src.models.user import User
+from typing import Optional
+from models import User
 from src.repositories.user_repository import UserRepository
 
 
@@ -8,15 +9,15 @@ class AuthService:
         self.repository = repository
 
     def register(self, email: str, name: str, surname: str, password: str) -> User:
-        user_id = self.repository.add_user(email, name, surname, self._hash_password(password))
+        hashed_password = self._hash_password(password)
+        user_id = self.repository.add_user(email, name, surname, hashed_password)
         return self.repository.get_user_by_id(user_id)
 
-    def authenticate(self, email: str, password: str) -> User | None:
-        row = self.repository.get_user_by_email(email)
-        if not row:
+    def authenticate(self, email: str, password: str) -> Optional[User]:
+        user = self.repository.get_user_by_email(email)
+        if not user:
             return None
 
-        user = User.from_row(row)
         if self._verify_password(password, user.password):
             return user
         return None

@@ -1,7 +1,8 @@
 from datetime import datetime
 from flask import Blueprint, request, render_template, session, redirect
+
+from src.constants import INCOME, SPEND
 from src.decorators.login_required import login_required
-from src.factories.database_connection_factory import DatabaseConnectionFactory
 from src.repositories.category_repository import CategoryRepository
 from src.repositories.transaction_repository import TransactionRepository
 from src.services.category_service import CategoryService
@@ -10,12 +11,10 @@ from src.services.transaction_service import TransactionService
 transaction_blueprint = Blueprint('transaction', __name__, url_prefix='')
 
 def get_transaction_service() -> TransactionService:
-    client = DatabaseConnectionFactory.create_client('sqlite', db_name='financial_tracker.db')
-    return TransactionService(TransactionRepository(client))
+    return TransactionService(TransactionRepository())
 
 def get_category_service() -> CategoryService:
-    client = DatabaseConnectionFactory.create_client('sqlite', db_name='financial_tracker.db')
-    return CategoryService(CategoryRepository(client))
+    return CategoryService(CategoryRepository())
 
 @transaction_blueprint.route('/income', methods=['GET', 'POST'])
 @login_required
@@ -30,11 +29,11 @@ def incomes():
         return render_template('incomes/index.html', transactions=transactions_data, categories=categories)
     else:
         transaction = transaction_service.create_transaction(
-            1,
+            INCOME,
             float(request.form['amount']),
             int(request.form['category']),
             owner,
-            datetime.now().strftime('%Y-%m-%d'),
+            datetime.now(),
             request.form['description'],
         )
 
@@ -62,11 +61,11 @@ def income(income_id):
         if method and method.upper() == 'PATCH':
             updated_transaction = transaction_service.update_transaction(
                 income_id,
-                1,
+                INCOME,
                 float(request.form.get('amount')),
                 int(request.form.get('category')),
                 owner,
-                datetime.now().strftime('%Y-%m-%d'),
+                datetime.now(),
                 request.form.get('description'),
             )
             if updated_transaction:
@@ -96,11 +95,11 @@ def spends():
         return render_template('spends/index.html', transactions=transactions_data, categories=categories)
     else:
         transaction = transaction_service.create_transaction(
-            2,
+            SPEND,
             float(request.form['amount']),
             int(request.form['category']),
             owner,
-            datetime.now().strftime('%Y-%m-%d'),
+            datetime.now(),
             request.form['description'],
         )
 
@@ -127,11 +126,11 @@ def spend(spend_id):
         if method and method.upper() == 'PATCH':
             updated_transaction = transaction_service.update_transaction(
                 spend_id,
-                2,
+                SPEND,
                 float(request.form.get('amount')),
                 int(request.form.get('category')),
                 owner,
-                datetime.now().strftime('%Y-%m-%d'),
+                datetime.now(),
                 request.form.get('description'),
             )
             if updated_transaction:

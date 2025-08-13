@@ -1,4 +1,4 @@
-from src.models.user import User
+from models import User
 from src.repositories.user_repository import UserRepository
 
 
@@ -11,8 +11,7 @@ class UserService:
         return self.get_user(email)
 
     def get_user(self, email: str) -> User | None:
-        row = self.repository.get_user_by_email(email)
-        return User.from_row(row)
+        return self.repository.get_user_by_email(email)
 
     def update_user(self, user_id: int, email: str, name: str, surname: str, password: str) -> bool:
         return self.repository.update_user(user_id, email, name, surname, password)

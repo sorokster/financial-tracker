@@ -1,14 +1,12 @@
 from flask import Blueprint, request, render_template, session, redirect
 from src.decorators.login_required import login_required
-from src.factories.database_connection_factory import DatabaseConnectionFactory
 from src.repositories.category_repository import CategoryRepository
 from src.services.category_service import CategoryService
 
 category_blueprint = Blueprint('category', __name__, url_prefix='/category')
 
 def get_category_service() -> CategoryService:
-    client = DatabaseConnectionFactory.create_client('sqlite', db_name='financial_tracker.db')
-    return CategoryService(CategoryRepository(client))
+    return CategoryService(CategoryRepository())
 
 @category_blueprint.route('', methods=['GET', 'POST'])
 @login_required

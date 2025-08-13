@@ -1,5 +1,5 @@
 from typing import List
-from src.models.category import Category
+from models import Category
 from src.repositories.category_repository import CategoryRepository
 
 
@@ -12,12 +12,10 @@ class CategoryService:
         return self.get_category(row, owner)
 
     def get_categories(self, owner: int) -> List[Category]:
-        rows = self.repository.get_categories(owner)
-        return [Category.from_row(row) for row in rows]
+        return self.repository.get_categories(owner)
 
     def get_category(self, category: int, owner: int) -> Category | None:
-        row = self.repository.get_category(category, owner)
-        return Category.from_row(row)
+        return self.repository.get_category(category, owner)
 
     def update_category(self, category: int, name: str, owner: int) -> bool:
         return self.repository.update_category(category, name, owner)

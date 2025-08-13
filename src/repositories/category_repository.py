@@ -1,58 +1,44 @@
-from src.models.category import Category
+from typing import Optional, List
+from models import Category, User
 from src.repositories.base_repository import BaseRepository
 
 
 class CategoryRepository(BaseRepository):
     def add_category(self, name: str, owner: int) -> int:
-        return self.insert("categories", {"name": name, "owner": owner})
+        new_category = Category(name=name, owner=owner)
+        self.session.add(new_category)
+        self.session.commit()
+        self.session.refresh(new_category)
+        return new_category.id
 
-    def get_categories(self, owner: int):
-        return self.select(
-            table="categories c",
-            columns=[
-                "c.id AS category_id",
-                "c.name AS category_name",
-                "c.owner",
-                "u.id AS user_id",
-                "u.email AS user_email",
-                "u.name AS user_name",
-                "u.surname AS user_surname",
-                "u.password AS user_password",
-            ],
-            join="JOIN users u ON c.owner = u.id",
-            where="c.owner = ?",
-            params=(owner,)
+    def get_categories(self, owner: int) -> List[Category]:
+        return (
+            self.session.query(Category)
+            .join(User, Category.owner == User.id)
+            .filter(Category.owner == owner)
+            .all()
         )
 
-    def get_category(self, category: int, owner: int) -> Category | None:
-        return self.select_one(
-            table="categories c",
-            columns=[
-                "c.id AS category_id",
-                "c.name AS category_name",
-                "c.owner",
-                "u.id AS user_id",
-                "u.email AS user_email",
-                "u.name AS user_name",
-                "u.surname AS user_surname",
-                "u.password AS user_password",
-            ],
-            join="JOIN users u ON c.owner = u.id",
-            where="c.id = ? AND c.owner = ?",
-            params=(category, owner)
+    def get_category(self, category_id: int, owner: int) -> Optional[Category]:
+        return (
+            self.session.query(Category)
+            .join(User, Category.owner == User.id)
+            .filter(Category.id == category_id, Category.owner == owner)
+            .first()
         )
 
-    def update_category(self, category: int, name: str, owner: int) -> bool:
-        return self.update(
-            table="categories",
-            data={"name": name},
-            where="id = ? AND owner = ?",
-            params=(category, owner)
-        )
+    def update_category(self, category_id: int, name: str, owner: int) -> bool:
+        category = self.get_category(category_id, owner)
+        if not category:
+            return False
+        category.name = name
+        self.session.commit()
+        return True
 
-    def remove_category(self, category: int, owner: int) -> bool:
-        return self.delete(
-            table="categories",
-            where="id = ? AND owner = ?",
-            params=(category, owner)
-        )
+    def remove_category(self, category_id: int, owner: int) -> bool:
+        category = self.get_category(category_id, owner)
+        if not category:
+            return False
+        self.session.delete(category)
+        self.session.commit()
+        return True

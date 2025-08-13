@@ -1,5 +1,6 @@
+from datetime import datetime
 from typing import Optional, List
-from src.models.transaction import Transaction
+from models import Transaction, Category, User
 from src.repositories.base_repository import BaseRepository
 
 
@@ -10,70 +11,39 @@ class TransactionRepository(BaseRepository):
         amount: float,
         category: int,
         owner: int,
-        date: str,
+        date: datetime,
         description: Optional[str] = None
     ) -> int:
-        return self.insert(
-            "entries",
-            {
-                "type": transaction_type,
-                "amount": amount,
-                "category": category,
-                "owner": owner,
-                "date": date,
-                "description": description
-            }
+        new_transaction = Transaction(
+            type=transaction_type,
+            amount=amount,
+            category=category,
+            owner=owner,
+            date=date,
+            description=description
         )
+        self.session.add(new_transaction)
+        self.session.commit()
+        self.session.refresh(new_transaction)
+        return new_transaction.id
 
     def get_transaction(self, transaction_id: int, owner: int) -> Optional[Transaction]:
-        row = self.select_one(
-            table="entries t",
-            columns=[
-                "t.id AS transaction_id",
-                "t.type AS transaction_type",
-                "t.amount",
-                "t.date",
-                "t.description",
-                "t.category",
-                "c.id AS category_id",
-                "c.name AS category_name",
-                "u.id AS user_id",
-                "u.email AS user_email",
-                "u.name AS user_name",
-                "u.surname AS user_surname",
-                "u.password AS user_password"
-            ],
-            join="JOIN categories c ON t.category = c.id "
-                 "JOIN users u ON t.owner = u.id",
-            where="t.id = ? AND t.owner = ?",
-            params=(transaction_id, owner)
+        return (
+            self.session.query(Transaction)
+            .join(Category, Transaction.category == Category.id)
+            .join(User, Transaction.owner == User.id)
+            .filter(Transaction.id == transaction_id, Transaction.owner == owner)
+            .first()
         )
-        return Transaction.from_row(row) if row else None
 
     def get_transactions(self, owner: int, transaction_type: int) -> List[Transaction]:
-        rows = self.select(
-            table="entries t",
-            columns=[
-                "t.id AS transaction_id",
-                "t.type AS transaction_type",
-                "t.amount",
-                "t.category",
-                "t.date",
-                "t.description",
-                "c.id AS category_id",
-                "c.name AS category_name",
-                "u.id AS user_id",
-                "u.email AS user_email",
-                "u.name AS user_name",
-                "u.surname AS user_surname",
-                "u.password AS user_password"
-            ],
-            join="JOIN categories c ON t.category = c.id "
-                 "JOIN users u ON t.owner = u.id",
-            where="u.id = ? AND t.type = ?",
-            params=(owner, transaction_type)
+        return (
+            self.session.query(Transaction)
+            .join(Category, Transaction.category == Category.id)
+            .join(User, Transaction.owner == User.id)
+            .filter(User.id == owner, Transaction.type == transaction_type)
+            .all()
         )
-        return [Transaction.from_row(row) for row in rows]
 
     def update_transaction(
         self,
@@ -82,25 +52,24 @@ class TransactionRepository(BaseRepository):
         amount: float,
         category: int,
         owner: int,
-        date: str,
+        date: datetime,
         description: Optional[str] = None
     ) -> bool:
-        return self.update(
-            table="entries",
-            data={
-                "type": transaction_type,
-                "amount": amount,
-                "category": category,
-                "date": date,
-                "description": description
-            },
-            where="id = ? AND owner = ?",
-            params=(transaction_id, owner)
-        )
+        transaction = self.get_transaction(transaction_id, owner)
+        if not transaction:
+            return False
+        transaction.type = transaction_type
+        transaction.amount = amount
+        transaction.category = category
+        transaction.date = date
+        transaction.description = description
+        self.session.commit()
+        return True
 
     def remove_transaction(self, transaction_id: int, owner: int) -> bool:
-        return self.delete(
-            table="entries",
-            where="id = ? AND owner = ?",
-            params=(transaction_id, owner)
-        )
+        transaction = self.get_transaction(transaction_id, owner)
+        if not transaction:
+            return False
+        self.session.delete(transaction)
+        self.session.commit()
+        return True

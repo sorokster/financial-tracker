@@ -14,4 +14,6 @@ app.register_blueprint(category_blueprint)
 app.register_blueprint(transaction_blueprint)
 
 if __name__ == '__main__':
+    INCOME = 1
+    SPEND = 2
     app.run(debug=True)

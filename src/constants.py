@@ -1,0 +1,2 @@
+INCOME = 1
+SPEND = 2
