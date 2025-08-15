@@ -9,6 +9,8 @@ class User(Base):
     password = Column(String, nullable=False)
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
+    country = Column(String, nullable=True)
+    city = Column(String, nullable=True)
 
     def __repr__(self):
         return '<User %r>' % self.email
